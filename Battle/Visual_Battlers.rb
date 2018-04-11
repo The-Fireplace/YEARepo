@@ -1,55 +1,63 @@
 #==============================================================================
-# 
-# 겈 Yanfly Engine Ace - Visual Battlers v1.01
-# -- Last Updated: 2012.07.24
+# 혖짜 Yanfly Engine Ace - Visual Battlers v1.02(Minor Update)
+# -- Last Updated: Friday, January 4, 2013
 # -- Level: Easy
 # -- Requires: n/a
 #
-# 겈 Modified by:
+# 혖짜 Modified by:
 # -- Yami
 # -- Kread-Ex
 # -- Archeia_Nessiah
+#
+# 짜 Add-Ons by:
+# -- Levi Stepp
+# Includes:
+# - Fallen Actors
+# - Actors Stepping Toggle On/Off
+# - Error Fix with MOG | Picture CM (Place below this script)
+# - Graphical Error Fix - MOG | Battle HUD
 #==============================================================================
-
+ 
 $imported = {} if $imported.nil?
 $imported["YEA-VisualBattlers"] = true
-
+ 
 #==============================================================================
-# 겈 Updates
+# 혖짜 Updates
 # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+# 2013.01.04 - Added Fallen Actors, Stepping, Image Fixes
 # 2012.12.18 - Added preset views and able to change direction in-game.
 # 2012.07.24 - Finished Script.
 # 2012.01.05 - Started Script.
-# 
+#
 #==============================================================================
-# 겈 Introduction
+# 혖짜 Introduction
 # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 # This script provides a visual for all actors by default charsets. The actions
-# and movements are alike Final Fantasy 1, only move forward and backward when 
+# and movements are alike Final Fantasy 1, only move forward and backward when
 # start and finish actions.
-# 
+#
 #==============================================================================
-# 겈 Instructions
+# 혖짜 Instructions
 # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-# To change the player direction in-game, use the snippet below in a script 
-# call: 
-# 
+# To change the player direction in-game, use the snippet below in a script
+# call:
+#
 # $game_system.party_direction = n
 #
 # To install this script, open up your script editor and copy/paste this script
-# to an open slot below 겈 Materials but above 겈 Main. Remember to save.
-# 
+# to an open slot below 혖짜 Materials but above 혖짜 Main. Remember to save.
+#
 #==============================================================================
-# 겈 Compatibility
+# 혖짜 Compatibility
 # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 # This script is made strictly for RPG Maker VX Ace. It is highly unlikely that
 # it will run with RPG Maker VX without adjusting.
-# 
+#
 #==============================================================================
-
+ 
 module YEA
   module VISUAL_BATTLERS
-    
+   
     #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
     # - Party Location Setting -
     #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -57,35 +65,41 @@ module YEA
     # coordinates calculated by below formula. There are two samples coordinates
     # below, change PARTY_DIRECTION to the base index you want to use.
     #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-    PARTY_DIRECTION = 6 # This direction is opposite from actual direction.
-    
+    PARTY_DIRECTION = 3 # This direction is opposite from actual direction.
+   
     PARTY_LOCATION_BASE_COORDINATES ={
     # Index => [base_x, base_y, mod_x, mod_y],
-          2 => [   250,    290,    40,     0], #UP
+          2 => [   260,    400,    40,     0], #UP
           4 => [   150,    280,    20,   -20], #LEFT
-          3 => [   460,    280,    30,   -10], #RIGHT
-          6 => [   460,    230,    20,    20], #DEFAULT RIGHT
+          3 => [   480,    290,    10,   25], #RIGHT
+          6 => [   460,    280,    32,    20], #DEFAULT RIGHT
           8 => [   260,    230,    40,     0], #DOWN
     } # Do not remove this.
-    
+   
     PARTY_LOCATION_FORMULA_X = "base_x + index * mod_x"
     PARTY_LOCATION_FORMULA_Y = "base_y + index * mod_y"
     
+# BATTLE STEPPING ANIM
+# Setting this to true, will set your sprites in battle
+# like the event "Stepping Anim".
+# Set this to false to have no walking animation.    
+    BATTLE_STEPPING_ANIM = true #DEFAULT true
+   
   end # VISUAL_BATTLERS
 end # YEA
-
+ 
 #==============================================================================
-#  겈  Editting anything past this point may potentially result in causing
+#  혖짜  Editting anything past this point may potentially result in causing
 # computer damage, incontinence, explosion of user's head, coma, death, and/or
 # halitosis so edit at your own risk.
 #==============================================================================
-
+ 
 #==============================================================================
-# ? 겈  Direction
+# ? 혖짜  Direction
 #==============================================================================
-
+ 
 module Direction
-  
+ 
   #--------------------------------------------------------------------------
   # self.correct
   #--------------------------------------------------------------------------
@@ -98,7 +112,7 @@ module Direction
     else; return direction
     end
   end
-  
+ 
   #--------------------------------------------------------------------------
   # self.opposite
   #--------------------------------------------------------------------------
@@ -115,21 +129,21 @@ module Direction
     else; return direction
     end
   end
-  
+ 
 end # Direction
-
+ 
 #==============================================================================
-# ? 겈  Game_System
+# ? 혖짜  Game_System
 #==============================================================================
-
+ 
 class Game_System; attr_accessor :party_direction; end
-
+ 
 #==============================================================================
-# ? 겈  Game_BattleCharacter
+# ? 혖짜  Game_BattleCharacter
 #==============================================================================
-
+ 
 class Game_BattleCharacter < Game_Character
-  
+ 
   #--------------------------------------------------------------------------
   # initialize
   #--------------------------------------------------------------------------
@@ -139,7 +153,7 @@ class Game_BattleCharacter < Game_Character
     @move_x_rate = 0
     @move_y_rate = 0
   end
-  
+ 
   #--------------------------------------------------------------------------
   # setup_actor
   #--------------------------------------------------------------------------
@@ -152,14 +166,21 @@ class Game_BattleCharacter < Game_Character
     direction = Direction.opposite(dr)
     set_direction(Direction.correct(direction))
   end
-  
+ 
+  #--------------------------------------------------------------------------
+  # step_anime=
+  #--------------------------------------------------------------------------
+  def step_anime=(step_anime)
+    @step_anime = step_anime
+  end
+ 
   #--------------------------------------------------------------------------
   # sprite=
   #--------------------------------------------------------------------------
   def sprite=(sprite)
     @sprite = sprite
   end
-  
+ 
   #--------------------------------------------------------------------------
   # setup_coordinates
   #--------------------------------------------------------------------------
@@ -176,43 +197,43 @@ class Game_BattleCharacter < Game_Character
     @actor.origin_y = @actor.screen_y
     @actor.create_move_to(screen_x, screen_y, 1)
   end
-  
+ 
   #--------------------------------------------------------------------------
   # index
   #--------------------------------------------------------------------------
   def index
     return @actor.index
   end
-  
+ 
   #--------------------------------------------------------------------------
   # screen_x
   #--------------------------------------------------------------------------
   def screen_x
     return @actor.screen_x
   end
-  
+ 
   #--------------------------------------------------------------------------
   # screen_y
   #--------------------------------------------------------------------------
   def screen_y
     return @actor.screen_y
   end
-  
+ 
   #--------------------------------------------------------------------------
   # screen_z
   #--------------------------------------------------------------------------
   def screen_z
     return @actor.screen_z
   end
-  
+ 
 end # Game_BattleCharacter
-
+ 
 #==============================================================================
-# ? 겈  Game_Battler
+# ? 혖짜  Game_Battler
 #==============================================================================
-
+ 
 class Game_Battler < Game_BattlerBase
-  
+ 
   #--------------------------------------------------------------------------
   # public instance variables
   #--------------------------------------------------------------------------
@@ -222,7 +243,7 @@ class Game_Battler < Game_BattlerBase
   attr_accessor :screen_x
   attr_accessor :screen_y
   attr_accessor :started_turn
-  
+ 
   #--------------------------------------------------------------------------
   # alias method: execute_damage
   #--------------------------------------------------------------------------
@@ -234,7 +255,7 @@ class Game_Battler < Game_BattlerBase
       @moved_back = true
     end
   end
-  
+ 
   #--------------------------------------------------------------------------
   # face_opposing_party
   #--------------------------------------------------------------------------
@@ -243,7 +264,7 @@ class Game_Battler < Game_BattlerBase
     YEA::VISUAL_BATTLERS::PARTY_DIRECTION)
     character.set_direction(Direction.correct(direction)) rescue 0
   end
-  
+ 
   #--------------------------------------------------------------------------
   # new method: face_coordinate
   #--------------------------------------------------------------------------
@@ -275,18 +296,18 @@ class Game_Battler < Game_BattlerBase
     #---
     character.set_direction(Direction.correct(direction)) rescue 0
   end
-  
+ 
   #--------------------------------------------------------------------------
   # create_move_to
   #--------------------------------------------------------------------------
-  def create_move_to(destination_x, destination_y, frames = 12)
+  def create_move_to(destination_x, destination_y, frames = 6)
     @destination_x = destination_x
     @destination_y = destination_y
     frames = [frames, 1].max
     @move_x_rate = [(@screen_x - @destination_x).abs / frames, 2].max
     @move_y_rate = [(@screen_y - @destination_y).abs / frames, 2].max
   end
-  
+ 
   #--------------------------------------------------------------------------
   # update_move_to
   #--------------------------------------------------------------------------
@@ -298,27 +319,27 @@ class Game_Battler < Game_BattlerBase
     value = [(@screen_y - @destination_y).abs, @move_y_rate].min
     @screen_y += (@destination_y > @screen_y) ? value : -value
   end
-  
+ 
   #--------------------------------------------------------------------------
   # move_forward
   #--------------------------------------------------------------------------
-  def move_forward(distance = 24, frames = 12)
+  def move_forward(distance = 24, frames = 6)
     direction = forward_direction
     move_direction(direction, distance, frames)
   end
-  
+ 
   #--------------------------------------------------------------------------
   # move_backward
   #--------------------------------------------------------------------------
-  def move_backward(distance = 24, frames = 12)
+  def move_backward(distance = 24, frames = 6)
     direction = Direction.opposite(forward_direction)
     move_direction(direction, distance, frames)
   end
-  
+ 
   #--------------------------------------------------------------------------
   # move_direction
   #--------------------------------------------------------------------------
-  def move_direction(direction, distance = 24, frames = 12)
+  def move_direction(direction, distance = 24, frames = 6)
     case direction
     when 1; move_x = distance / -2; move_y = distance /  2
     when 2; move_x = distance *  0; move_y = distance *  1
@@ -334,7 +355,7 @@ class Game_Battler < Game_BattlerBase
     destination_y = @screen_y + move_y
     create_move_to(destination_x, destination_y, frames)
   end
-  
+ 
   #--------------------------------------------------------------------------
   # forward_direction
   #--------------------------------------------------------------------------
@@ -342,7 +363,7 @@ class Game_Battler < Game_BattlerBase
     return ($game_system.party_direction ||
     YEA::VISUAL_BATTLERS::PARTY_DIRECTION)
   end
-  
+ 
   #--------------------------------------------------------------------------
   # move_origin
   #--------------------------------------------------------------------------
@@ -351,7 +372,7 @@ class Game_Battler < Game_BattlerBase
     face_coordinate(@origin_x, @origin_y)
     @moved_back = false
   end
-  
+ 
   #--------------------------------------------------------------------------
   # moving?
   #--------------------------------------------------------------------------
@@ -359,43 +380,43 @@ class Game_Battler < Game_BattlerBase
     return false if dead? || !exist?
     return @move_x_rate != 0 || @move_y_rate != 0
   end
-  
+ 
 end # Game_Battler
-
+ 
 #==============================================================================
-# ? 겈  Game_Actor
+# ? 혖짜  Game_Actor
 #==============================================================================
-
+ 
 class Game_Actor < Game_Battler
-  
+ 
   #--------------------------------------------------------------------------
   # overwrite method: use_sprite?
   #--------------------------------------------------------------------------
   def use_sprite?
     return true
   end
-  
+ 
   #--------------------------------------------------------------------------
   # new method: screen_x
   #--------------------------------------------------------------------------
   def screen_x
     return @screen_x rescue 0
   end
-  
+ 
   #--------------------------------------------------------------------------
   # new method: screen_y
   #--------------------------------------------------------------------------
   def screen_y
     return @screen_y rescue 0
   end
-  
+ 
   #--------------------------------------------------------------------------
   # new method: screen_z
   #--------------------------------------------------------------------------
   def screen_z
     return 100
   end
-  
+ 
   #--------------------------------------------------------------------------
   # new method: sprite
   #--------------------------------------------------------------------------
@@ -403,14 +424,14 @@ class Game_Actor < Game_Battler
     index = $game_party.battle_members.index(self)
     return SceneManager.scene.spriteset.actor_sprites[index]
   end
-  
+ 
   #--------------------------------------------------------------------------
   # new method: character
   #--------------------------------------------------------------------------
   def character
     return sprite.character_base
   end
-  
+ 
   #--------------------------------------------------------------------------
   # face_opposing_party
   #--------------------------------------------------------------------------
@@ -419,7 +440,7 @@ class Game_Actor < Game_Battler
     direction = Direction.opposite(dr)
     character.set_direction(Direction.correct(direction)) rescue 0
   end
-  
+ 
   #--------------------------------------------------------------------------
   # forward_direction
   #--------------------------------------------------------------------------
@@ -427,37 +448,37 @@ class Game_Actor < Game_Battler
     return Direction.opposite(($game_system.party_direction ||
     YEA::VISUAL_BATTLERS::PARTY_DIRECTION))
   end
-  
+ 
 end # Game_Actor
-
+ 
 #==============================================================================
-# ? 겈  Game_Enemy
+# ? 혖짜  Game_Enemy
 #==============================================================================
-
+ 
 class Game_Enemy < Game_Battler
-  
+ 
   #--------------------------------------------------------------------------
   # new method: sprite
   #--------------------------------------------------------------------------
   def sprite
     return SceneManager.scene.spriteset.enemy_sprites.reverse[self.index]
   end
-  
+ 
   #--------------------------------------------------------------------------
   # new method: character
   #--------------------------------------------------------------------------
   def character
     return sprite
   end
-  
+ 
 end # Game_Enemy
-
+ 
 #==============================================================================
-# ? 겈  Game_Troop
+# ? 혖짜  Game_Troop
 #==============================================================================
-
+ 
 class Game_Troop < Game_Unit
-  
+ 
   #--------------------------------------------------------------------------
   # alias method: setup
   #--------------------------------------------------------------------------
@@ -466,7 +487,7 @@ class Game_Troop < Game_Unit
     game_troop_setup_vb(troop_id)
     set_coordinates
   end
-  
+ 
   #--------------------------------------------------------------------------
   # new method: set_coordinates
   #--------------------------------------------------------------------------
@@ -477,21 +498,21 @@ class Game_Troop < Game_Unit
       member.create_move_to(member.screen_x, member.screen_y, 1)
     end
   end
-  
+ 
 end # Game_Troop
-
+ 
 #==============================================================================
-# ? 겈  Sprite_Battler
+# ? 혖짜  Sprite_Battler
 #==============================================================================
-
+ 
 class Sprite_Battler < Sprite_Base
-  
+ 
   #--------------------------------------------------------------------------
   # public instance_variable
   #--------------------------------------------------------------------------
   attr_accessor :character_base
   attr_accessor :character_sprite
-  
+ 
   #--------------------------------------------------------------------------
   # alias method: dispose
   #--------------------------------------------------------------------------
@@ -500,14 +521,14 @@ class Sprite_Battler < Sprite_Base
     dispose_character_sprite
     sprite_battler_dispose_vb
   end
-  
+ 
   #--------------------------------------------------------------------------
   # new method: dispose_character_sprite
   #--------------------------------------------------------------------------
   def dispose_character_sprite
     @character_sprite.dispose unless @character_sprite.nil?
   end
-  
+ 
   #--------------------------------------------------------------------------
   # alias method: update
   #--------------------------------------------------------------------------
@@ -519,7 +540,7 @@ class Sprite_Battler < Sprite_Base
     update_character_base
     update_character_sprite
   end
-  
+ 
   #--------------------------------------------------------------------------
   # new method: update_character_base
   #--------------------------------------------------------------------------
@@ -527,7 +548,7 @@ class Sprite_Battler < Sprite_Base
     return if @character_base.nil?
     @character_base.update
   end
-  
+ 
   #--------------------------------------------------------------------------
   # new method: update_character_sprite
   #--------------------------------------------------------------------------
@@ -535,14 +556,14 @@ class Sprite_Battler < Sprite_Base
     return if @character_sprite.nil?
     @character_sprite.update
   end
-  
+ 
   #--------------------------------------------------------------------------
   # new method: update_move_to
   #--------------------------------------------------------------------------
   def update_move_to
     @battler.update_move_to
   end
-  
+ 
   #--------------------------------------------------------------------------
   # new method: moving?
   #--------------------------------------------------------------------------
@@ -550,15 +571,15 @@ class Sprite_Battler < Sprite_Base
     return false if @battler.nil?
     return @battler.moving?
   end
-  
+ 
 end # Sprite_Battler
-
+ 
 #==============================================================================
-# ? 겈  Sprite_BattleCharacter
+# ? 혖짜  Sprite_BattleCharacter
 #==============================================================================
-
+ 
 class Sprite_BattleCharacter < Sprite_Character
-  
+ 
   #--------------------------------------------------------------------------
   # initialize
   #--------------------------------------------------------------------------
@@ -566,21 +587,21 @@ class Sprite_BattleCharacter < Sprite_Character
     super(viewport, character)
     character.sprite = self
   end
-  
+ 
 end # Sprite_BattleCharacter
-
+ 
 #==============================================================================
-# ? 겈  Spriteset_Battle
+# ? 혖짜  Spriteset_Battle
 #==============================================================================
-
+ 
 class Spriteset_Battle
-  
+ 
   #--------------------------------------------------------------------------
   # public instance_variable
   #--------------------------------------------------------------------------
   attr_accessor :actor_sprites
   attr_accessor :enemy_sprites
-  
+ 
   #--------------------------------------------------------------------------
   # overwrite method: create_actors
   #--------------------------------------------------------------------------
@@ -593,7 +614,7 @@ class Spriteset_Battle
       create_actor_sprite(actor)
     end
   end
-  
+ 
   #--------------------------------------------------------------------------
   # new method: create_actor_sprite
   #--------------------------------------------------------------------------
@@ -604,39 +625,52 @@ class Spriteset_Battle
     @actor_sprites[actor.index].character_sprite = character_sprite
     actor.face_opposing_party
   end
-  
+ 
   #--------------------------------------------------------------------------
   # alias method: update_actors
   #--------------------------------------------------------------------------
   alias spriteset_battle_update_actors_vb update_actors
   def update_actors
+    for actor in $game_party.battle_members
+      if $game_party.battle_members[actor.index].death_state?
+        @actor_sprites[actor.index].character_sprite.angle = 90
+        @actor_sprites[actor.index].character_base.step_anime = false
+        #
+      elsif @actor_sprites[actor.index].battler.moving?
+        @actor_sprites[actor.index].character_sprite.angle = 0
+        @actor_sprites[actor.index].character_base.step_anime = true
+      else
+        @actor_sprites[actor.index].character_sprite.angle = 0
+        @actor_sprites[actor.index].character_base.step_anime = YEA::VISUAL_BATTLERS::BATTLE_STEPPING_ANIM
+      end
+    end
     if @current_party != $game_party.battle_members
       dispose_actors
       create_actors
     end
     spriteset_battle_update_actors_vb
   end
-  
+ 
   #--------------------------------------------------------------------------
   # new method: moving?
   #--------------------------------------------------------------------------
   def moving?
     return battler_sprites.any? {|sprite| sprite.moving? }
   end
-  
+ 
 end # Spriteset_Battle
-
+ 
 #==============================================================================
-# ? 겈  Scene_Battle
+# ? 혖짜  Scene_Battle
 #==============================================================================
-
+ 
 class Scene_Battle < Scene_Base
-  
+ 
   #--------------------------------------------------------------------------
   # public instance variables
   #--------------------------------------------------------------------------
   attr_accessor :spriteset
-  
+ 
   #--------------------------------------------------------------------------
   # alias method: process_action_end
   #--------------------------------------------------------------------------
@@ -645,7 +679,7 @@ class Scene_Battle < Scene_Base
     start_battler_move_origin
     scene_battle_process_action_end_vb
   end
-  
+ 
   #--------------------------------------------------------------------------
   # alias method: execute_action
   #--------------------------------------------------------------------------
@@ -654,7 +688,7 @@ class Scene_Battle < Scene_Base
     start_battler_move_forward
     scene_battle_execute_action_vb
   end
-  
+ 
   #--------------------------------------------------------------------------
   # new method: start_battler_move_forward
   #--------------------------------------------------------------------------
@@ -664,7 +698,7 @@ class Scene_Battle < Scene_Base
     @subject.move_forward
     wait_for_moving
   end
-  
+ 
   #--------------------------------------------------------------------------
   # new method: start_battler_move_origin
   #--------------------------------------------------------------------------
@@ -674,18 +708,18 @@ class Scene_Battle < Scene_Base
     wait_for_moving
     @subject.face_opposing_party rescue 0
   end
-  
+ 
   #--------------------------------------------------------------------------
   # new method: move_battlers_origin
   #--------------------------------------------------------------------------
   def move_battlers_origin
     for member in all_battle_members
-      next if member.dead?
       next unless member.exist?
+      next if member.dead?
       member.move_origin
     end
   end
-  
+ 
   #--------------------------------------------------------------------------
   # new method: wait_for_moving
   #--------------------------------------------------------------------------
@@ -693,11 +727,11 @@ class Scene_Battle < Scene_Base
     update_for_wait
     update_for_wait while @spriteset.moving?
   end
-  
+ 
 end # Scene_Battle
-
+ 
 #==============================================================================
-# 
-#  겈  End of File
-# 
+#
+#  혖짜  End of File
+#
 #==============================================================================
